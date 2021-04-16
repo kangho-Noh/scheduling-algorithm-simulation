@@ -23,6 +23,161 @@ struct Process {
 	}
 };
 
+struct FCFS {
+	int running; //현재 실행중인 프로세스 인덱스
+	int len; // 기다리는 프로세스 개수 + 실행중인 프로세스 개수 =0이면 종료
+	int time_passed; // 시작한 뒤 지난 시간
+	FCFS() {
+		running = 0;
+		len = 0;
+		time_passed = 0;
+	}
+	void run(Process* parr) {
+		cout << "\n\n=========================\n";
+		cout << "=======    FCFS   =======\n";
+		cout << "=========================\n";
+		cout << "\n\n=== now time : " << time_passed << " ===\n";
+		cout << "PID" << parr[0].PID << " is running.\n";
+		cout << "PID" << parr[running].PID << "'s remaining burst time : " << parr[running].burst_time;
+		cout << '\n';
+		parr[0].status = 2;
+		running = 0;
+		len++;
+		while (1) {
+			for (int i = 1; i < 6; i++) {
+				if (time_passed == parr[i].arrival_time) {
+					parr[i].status = 1;
+					len++;
+				}
+			}
+
+			if (parr[running].burst_time == 0) {
+				cout << "\n\n<PID" << parr[running].PID << " has been executed.>\n";
+				cout << "=== now time : " << time_passed << " ===\n";
+				parr[running].status = 3;
+				len--;
+				if (!len) break;
+				while (1) {
+					running = (running + 1) % 6;
+					if (parr[running].status == 1) {
+						parr[running].status = 2;
+						break;
+					}
+				}
+				cout << "PID" << parr[running].PID << " is running.\n";
+				cout << "PID" << parr[running].PID << "'s remaining burst time : " << parr[running].burst_time;
+				cout << '\n';
+			}
+
+
+			for (int i = 0; i < 6; i++) {
+				if (parr[i].status == 1) {
+					parr[i].waiting_time++;
+				}
+				else if (parr[i].status == 2) {
+					parr[i].burst_time--;
+
+				}
+			}
+			time_passed++;
+
+		}
+		cout << "\n== Average waiting time ==\n";
+		float sum = 0;
+		for (int i = 0; i < 6; i++) {
+			cout << "PID" << i + 1 << " waiting time : " << parr[i].waiting_time << '\n';
+			sum += parr[i].waiting_time;
+		}
+		cout << "\nAverage waiting time : " << sum / 6 << '\n';
+	}
+};
+struct SRTF {
+	int running; //현재 실행중인 프로세스 인덱스
+	int len; // 기다리는 프로세스 개수 + 실행중인 프로세스 개수 =0이면 종료
+	int time_passed; // 시작한 뒤 지난 시간
+	SRTF() {
+		running = 0;
+		len = 0;
+		time_passed = 0;
+	}
+	void run(Process* parr) {
+		cout << "\n\n=========================\n";
+		cout << "=======    SRTF   =======\n";
+		cout << "=========================\n";
+		cout << "\n\n=== now time : " << time_passed << " ===\n";
+		cout << "PID" << parr[0].PID << " is running.\n";
+		cout << "PID" << parr[running].PID << "'s remaining burst time : " << parr[running].burst_time;
+		cout << '\n';
+		parr[0].status = 2;
+		running = 0;
+		len++;
+
+		while (1) {
+			if (parr[running].burst_time == 0) {
+				cout << "\n\n<PID" << parr[running].PID << " has been executed.>\n";
+				cout << "=== now time : " << time_passed << " ===\n";
+				parr[running].status = 3;
+				len--;
+
+				if (!len) break;
+
+				for (int i = 0; i < 6; i++) {
+					if (parr[i].status == 1) {
+						cout << "PID" << parr[i].PID << "'s remaining burst time : " << parr[i].burst_time<<'\n';
+					}
+				}
+				int min_burst = 500;
+				for (int i = 0; i < 6; i++) {
+					if (parr[i].status == 1 && min_burst > parr[i].burst_time) {
+						if (parr[running].status!=3)
+							parr[running].status = 1;
+						running = i;
+						min_burst = parr[i].burst_time;
+						parr[i].status = 2;
+					}
+				}
+				cout << "PID" << parr[running].PID << " is running.\n";
+				cout << '\n';
+			}
+
+			for (int i = 1; i < 6; i++) {
+				if (time_passed == parr[i].arrival_time) {
+					parr[i].status = 1;
+					cout << "\n\n=== now time : " << time_passed << " ===\n";
+					cout << "PID" << i+1 << " joined.\n";
+					cout << "PID" << parr[i].PID << "'s remaining burst time : " << parr[i].burst_time;
+					cout << "\nPID" << parr[running].PID << "'s remaining burst time : " << parr[running].burst_time;
+					if (parr[running].burst_time > parr[i].burst_time) {
+						parr[i].status = 2;
+						parr[running].status = 1;
+						running = i;
+					}
+					cout << "\nPID" << parr[running].PID << " is running.\n";
+					len++;
+				}
+			}
+
+			for (int i = 0; i < 6; i++) {
+				if (parr[i].status == 1) {
+					parr[i].waiting_time++;
+				}
+				else if (parr[i].status == 2) {
+					parr[i].burst_time--;
+
+				}
+			}
+			time_passed++;
+
+		}
+		cout << "\n== Average waiting time ==\n";
+		float sum = 0;
+		for (int i = 0; i < 6; i++) {
+			cout << "PID" << i + 1 << " waiting time : " << parr[i].waiting_time << '\n';
+			sum += parr[i].waiting_time;
+		}
+		cout << "\nAverage waiting time : " << sum / 6 << '\n';
+	}
+};
 struct RR {
 	int running; //현재 실행중인 프로세스 인덱스
 	int time_quantum;
@@ -35,7 +190,7 @@ struct RR {
 		time_passed = 0;
 	}
 	void run(Process* parr) {
-		cout << "=========================\n";
+		cout << "\n\n=========================\n";
 		cout << "=======Round Robin=======\n";
 		cout << "=========================\n";
 		cout << "\n\n=== now time : " << time_passed << " ===\n";
@@ -54,8 +209,8 @@ struct RR {
 			}
 
 			if (parr[running].burst_time == 0) {
-				cout << "\n\n=== now time : " << time_passed << " ===\n";
-				cout << "<PID" << parr[running].PID << " has been executed.>\n";
+				cout << "\n\n<PID" << parr[running].PID << " has been executed.>\n";
+				cout << "=== now time : " << time_passed << " ===\n";
 				time_quantum = 0;
 				parr[running].status = 3;
 				len--;
@@ -132,12 +287,15 @@ int main() {
 	}
 
 	//FCFS
+	FCFS FCFSapp;
+	FCFSapp.run(process_arr1);
 
 	//SRTF
+	SRTF SRTFapp;
+	SRTFapp.run(process_arr2);
 
 	//RR
 	RR RRapp;
 	RRapp.run(process_arr3);
-	cout << "끝\n";
 	return 0;
 }
