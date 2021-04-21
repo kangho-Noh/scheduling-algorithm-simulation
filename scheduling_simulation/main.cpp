@@ -1,4 +1,5 @@
 #include <iostream>
+#include <queue>
 using namespace std;
 
 struct Process {
@@ -126,7 +127,7 @@ struct SRTF {
 						cout << "PID" << parr[i].PID << "'s remaining burst time : " << parr[i].burst_time<<'\n';
 					}
 				}
-				int min_burst = 500;
+				float min_burst = 500;
 				for (int i = 0; i < 6; i++) {
 					if (parr[i].status == 1 && min_burst > parr[i].burst_time) {
 						if (parr[running].status!=3)
@@ -183,6 +184,7 @@ struct RR {
 	int time_quantum;
 	int len; // 기다리는 프로세스 개수 + 실행중인 프로세스 개수 =0이면 종료
 	int time_passed; // 시작한 뒤 지난 시간
+	queue<Process*> ready_queue; // 프로세스 대기 큐
 	RR() {
 		running = 0;
 		time_quantum = 0;
@@ -204,6 +206,7 @@ struct RR {
 			for (int i = 1; i < 6; i++) {
 				if (time_passed == parr[i].arrival_time) {
 					parr[i].status = 1;
+					ready_queue.push(&parr[i]);//
 					len++;
 				}
 			}
@@ -215,13 +218,17 @@ struct RR {
 				parr[running].status = 3;
 				len--;
 				if (!len) break;
-				while (1) {
+				Process* temp = ready_queue.front();
+				ready_queue.pop();
+				running = temp->PID-1;
+				parr[running].status = 2;
+				/*while (1) {
 					running = (running + 1) % 6;
 					if (parr[running].status == 1) {
 						parr[running].status = 2;
 						break;
 					}
-				}
+				}*/
 				cout << "PID" << parr[running].PID << " is running.\n";
 				cout << "PID" << parr[running].PID << "'s remaining burst time : " << parr[running].burst_time;
 				cout << '\n';
@@ -230,13 +237,18 @@ struct RR {
 			else if (time_quantum == 3) {
 				time_quantum = 0;
 				parr[running].status = 1;
-				while (1) {
+				ready_queue.push(&parr[running]);
+				Process* temp = ready_queue.front();
+				ready_queue.pop();
+				running = temp->PID-1;
+				parr[running].status = 2;
+				/*while (1) {
 					running = (running + 1) % 6;
 					if (parr[running].status == 1) {
 						parr[running].status = 2;
 						break;
 					}
-				}
+				}*/
 				cout << "\n\n=== now time : " << time_passed << " ===\n";
 				cout << "PID" << parr[running].PID << " is running.\n";
 				cout << "PID" << parr[running].PID << "'s remaining burst time : "<<parr[running].burst_time;
